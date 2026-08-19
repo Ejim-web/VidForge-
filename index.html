@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidForge AI - AI Video Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #0a0a0f; color: #e0e0e0; padding: 16px; min-height: 100vh; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1a1a2e; margin-bottom: 20px; }
+    .logo-container { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { font-size: 28px; }
+    .logo-text { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #6C3CE1, #3B82F6, #06B6D4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+    .logo-sub { font-size: 11px; color: #888; -webkit-text-fill-color: #888; display: block; margin-top: -4px; font-weight: 400; }
+    .credits-box { background: #12121f; padding: 8px 16px; border-radius: 20px; font-size: 13px; border: 1px solid #2a2a4a; display: flex; align-items: center; gap: 6px; }
+    .credit-icon { color: #fbbf24; }
+    
+    .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .dash-item { background: #11111a; padding: 14px 10px; border-radius: 12px; text-align: center; border: 1px solid #1a1a2a; font-size: 13px; cursor: pointer; transition: 0.2s; }
+    .dash-item:active { transform: scale(0.96); }
+    .dash-item.active { border-color: #6C3CE1; background: #16162a; box-shadow: 0 0 20px rgba(108, 60, 225, 0.1); }
+    .dash-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    
+    .section { margin: 20px 0; }
+    .section-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #ccc; display: flex; align-items: center; gap: 8px; }
+    label { display: block; font-size: 13px; color: #999; margin-bottom: 5px; }
+    textarea, select { width: 100%; padding: 12px; background: #11111a; color: #e0e0e0; border: 1px solid #1a1a2a; border-radius: 10px; font-size: 15px; transition: 0.2s; }
+    textarea:focus, select:focus { border-color: #6C3CE1; outline: none; box-shadow: 0 0 20px rgba(108, 60, 225, 0.1); }
+    textarea { min-height: 110px; resize: vertical; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; background: linear-gradient(135deg, #6C3CE1, #3B82F6); color: white; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05), transparent); transform: rotate(45deg); transition: 0.5s; }
+    .btn:active::after { transform: rotate(45deg) translate(50%, 50%); }
+    
+    .status-box { background: #11111a; padding: 16px; border-radius: 12px; margin: 14px 0; border: 1px solid #1a1a2a; min-height: 56px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; }
+    .status-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #2a2a4a; border-top-color: #6C3CE1; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .video-container { margin: 14px 0; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid #1a1a2a; }
+    video { width: 100%; display: block; background: #000; }
+    .video-actions { display: flex; gap: 10px; padding: 10px; background: #11111a; }
+    .video-actions .btn { flex: 1; padding: 10px; font-size: 14px; }
+    
+    .hidden { display: none !important; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a2e; padding: 12px 24px; border-radius: 12px; border: 1px solid #2a2a4a; font-size: 14px; z-index: 100; max-width: 90%; text-align: center; backdrop-filter: blur(10px); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+    
+    .tagline { font-size: 12px; color: #666; text-align: center; margin-top: 24px; border-top: 1px solid #111; padding-top: 16px; }
+    .tagline span { color: #6C3CE1; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-container">
+    <span class="logo-icon">⚡</span>
+    <div>
+      <span class="logo-text">VidForge</span>
+      <span class="logo-sub">AI Studio</span>
+    </div>
+  </div>
+  <div class="credits-box">
+    <span class="credit-icon">⚡</span>
+    <span id="creditDisplay">Credits: —</span>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+  <div class="dash-item active">
+    <span class="dash-icon">🎬</span>
+    Create Video
+  </div>
+  <div class="dash-item">
+    <span class="dash-icon">🖼️</span>
+    Image to Video
+  </div>
+  <div class="dash-item">
+    <span class="dash-icon">📁</span>
+    My Videos
+  </div>
+  <div class="dash-item">
+    <span class="dash-icon">⚙️</span>
+    Settings
+  </div>
+</div>
+
+<!-- CREATE VIDEO SECTION -->
+<div class="section">
+  <div class="section-title">📝 Your Vision</div>
+  <label>Describe the video you want to create</label>
+  <textarea id="prompt" placeholder="Example: A young sorcerer stands in a medieval village as vampire sorcerers attack...">A young sorcerer stands in a medieval village as vampire sorcerers attack.</textarea>
+</div>
+
+<div class="row">
+  <div>
+    <label>🧠 Model</label>
+    <select id="modelSelect"><option value="">Loading models...</option></select>
+  </div>
+  <div>
+    <label>⏱️ Duration</label>
+    <select id="durationSelect">
+      <option value="8s">8 seconds</option>
+      <option value="10s">10 seconds</option>
+      <option value="15s">15 seconds</option>
+    </select>
+  </div>
+</div>
+
+<div class="row">
+  <div>
+    <label>📐 Resolution</label>
+    <select id="resolutionSelect">
+      <option value="720p">720p</option>
+      <option value="1080p">1080p</option>
+    </select>
+  </div>
+  <div>
+    <label>🔄 Aspect Ratio</label>
+    <select id="aspectSelect">
+      <option value="16:9">16:9 (Landscape)</option>
+      <option value="9:16">9:16 (Portrait)</option>
+      <option value="1:1">1:1 (Square)</option>
+    </select>
+  </div>
+</div>
+
+<button class="btn" id="generateBtn">⚡ Forge Video</button>
+
+<!-- STATUS -->
+<div id="statusBox" class="status-box hidden">
+  <span class="status-spinner"></span>
+  <span id="statusText">Preparing...</span>
+</div>
+
+<!-- VIDEO RESULT -->
+<div id="videoContainer" class="video-container hidden">
+  <video id="videoPlayer" controls playsinline></video>
+  <div class="video-actions">
+    <button id="openBtn" class="btn" style="background: linear-gradient(135deg, #3B82F6, #06B6D4);">🔗 Open Video</button>
+    <button id="downloadBtn" class="btn" style="background: linear-gradient(135deg, #6C3CE1, #8B5CF6);">⬇️ Download</button>
+  </div>
+</div>
+
+<div class="tagline">Forge your vision into video with <span>⚡ VidForge AI</span></div>
+
+<script>
+  const API_BASE = '/api';
+  let pollInterval = null;
+
+  // Load models
+  async function loadModels() {
+    try {
+      const res = await fetch(`${API_BASE}/models`);
+      const data = await res.json();
+      const select = document.getElementById('modelSelect');
+      select.innerHTML = '';
+      if (data.models && data.models.length) {
+        data.models.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.id || m;
+          opt.textContent = m.name || m;
+          select.appendChild(opt);
+        });
+      } else {
+        select.innerHTML = '<option value="sora-2">Sora-2</option>';
+      }
+    } catch (e) {
+      document.getElementById('modelSelect').innerHTML = '<option value="sora-2">Sora-2</option>';
+    }
+  }
+
+  // Fetch credits
+  async function fetchCredits() {
+    try {
+      const res = await fetch(`${API_BASE}/credits`);
+      const data = await res.json();
+      document.getElementById('creditDisplay').textContent = `Credits: ${data.balance ?? '?'}`;
+    } catch (e) {
+      document.getElementById('creditDisplay').textContent = 'Credits: —';
+    }
+  }
+
+  // Generate video
+  document.getElementById('generateBtn').addEventListener('click', async function() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) { showToast('Please describe your video first'); return; }
+    if (prompt.length < 3) { showToast('Prompt must be at least 3 characters'); return; }
+
+    this.disabled = true;
+    this.innerHTML = '⏳ Forging...';
+    
+    const statusBox = document.getElementById('statusBox');
+    const statusText = document.getElementById('statusText');
+    statusBox.classList.remove('hidden');
+    statusText.textContent = 'Submitting to ViewMax...';
+    
+    document.getElementById('videoContainer').classList.add('hidden');
+
+    try {
+      const res = await fetch(`${API_BASE}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          model: document.getElementById('modelSelect').value,
+          duration: document.getElementById('durationSelect').value,
+          resolution: document.getElementById('resolutionSelect').value,
+          aspect_ratio: document.getElementById('aspectSelect').value
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+      if (!data.task_id) throw new Error('No task ID received');
+
+      statusText.textContent = 'Video is being forged...';
+      pollTask(data.task_id);
+
+    } catch (err) {
+      showToast('❌ ' + err.message);
+      statusText.textContent = '❌ Failed: ' + err.message;
+      this.disabled = false;
+      this.innerHTML = '⚡ Forge Video';
+    }
+  });
+
+  // Poll task status
+  function pollTask(taskId) {
+    if (pollInterval) clearInterval(pollInterval);
+    let attempts = 0;
+    const statusText = document.getElementById('statusText');
+    const statusBox = document.getElementById('statusBox');
+
+    const messages = [
+      'Preparing your video...',
+      '🎬 Generating frames...',
+      '✨ Adding final touches...',
+      '⏳ Almost there...'
+    ];
+
+    pollInterval = setInterval(async () => {
+      attempts++;
+      statusText.textContent = messages[Math.min(attempts - 1, messages.length - 1)] + ` (${attempts})`;
+
+      try {
+        const res = await fetch(`${API_BASE}/status?id=${taskId}`);
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          clearInterval(pollInterval);
+          statusText.textContent = '✅ Video forged successfully!';
+          statusBox.querySelector('.status-spinner').style.display = 'none';
+          
+          const container = document.getElementById('videoContainer');
+          container.classList.remove('hidden');
+          const video = document.getElementById('videoPlayer');
+          video.src = data.video_url;
+          video.load();
+          
+          document.getElementById('generateBtn').disabled = false;
+          document.getElementById('generateBtn').innerHTML = '⚡ Forge Video';
+          fetchCredits();
+          showToast('🎉 Your video is ready!');
+          return;
+        }
+
+        if (data.status === 'failed' || data.status === 'canceled') {
+          clearInterval(pollInterval);
+          statusText.textContent = '❌ ' + (data.error || 'Generation failed');
+          statusBox.querySelector('.status-spinner').style.display = 'none';
+          document.getElementById('generateBtn').disabled = false;
+          document.getElementById('generateBtn').innerHTML = '⚡ Forge Video';
+          showToast('❌ Video generation failed');
+          return;
+        }
+
+      } catch (err) {
+        clearInterval(pollInterval);
+        statusText.textContent = '❌ Error checking status';
+        document.getElementById('generateBtn').disabled = false;
+        document.getElementById('generateBtn').innerHTML = '⚡ Forge Video';
+        showToast('❌ Network error');
+      }
+    }, 5000);
+  }
+
+  // Open video
+  document.getElementById('openBtn').addEventListener('click', function() {
+    const url = document.getElementById('videoPlayer').src;
+    if (url && url !== '') window.open(url, '_blank');
+  });
+
+  // Download video
+  document.getElementById('downloadBtn').addEventListener('click', function() {
+    const url = document.getElementById('videoPlayer').src;
+    if (url && url !== '') {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vidforge-${Date.now()}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  });
+
+  // Toast helper
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  // Init
+  loadModels();
+  fetchCredits();
+  setInterval(fetchCredits, 30000);
+</script>
+</body>
+</html>
